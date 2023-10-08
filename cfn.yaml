@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+   CloudFormation Template for Phonebook Application.
+  
+Parameters:
+
+  MyVPc:
+    Description: VPC Id of your existing account
+    Type: AWS::EC2::VPC::Id
+  
+  MyKey:
+    Description: Please enter your valid key pair.
+    Type: AWS::EC2::KeyPair::KeyName
+
+  MySubnets:
+    Description: Choose your subnets.
+    Type: List<AWS::EC2::Subnet::Id>
+
+
+Resources:
+
+  PrjSecGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP and TCP # Required
+      GroupName: "String"
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort:  22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0      
+
+
+
+  PrjALBSecGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enables HTTP connection # Required
+      GroupName: "String"
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref MyVPc    
+   
+
+  PrjLT:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: "String"
+        InstanceType: "String"
+        KeyName: "String"
+        SecurityGroupIds:
+          -
+        TagSpecifications:
+          -
+        UserData: 
+          Fn::Base64:
+             !Sub 
+             - |
+             #!/bin/bash
+             dnf update -y 
+             dnf install python3 -y 
+             pip3 install Flask
+             pip3 install Flask_MySql
+             # Add github Toekn
+             # TOKEN = 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
+             # FOLDER = https://$TOKEN@github.com/fhalearslnn/
+
+      LaunchTemplateName: "String"
+      TagSpecifications: 
+        TagSpecifications
+ 
+
+  PrjTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      UnhealthyThresholdCount: 3
+      HealthyThresholdCount: 2
+      VpcId: !Ref MyVPc
+
+  PrjASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: "String"
+      AvailabilityZones: 
+        AvailabilityZones
+      DesiredCapacity: 2
+      HealthCheckGracePeriod: 300
+      HealthCheckType: ELB
+      LaunchTemplate:
+        LaunchTemplateId: !Ref PrjLT
+        Version: !GetAtt PrjLT.LatestVersionNumber
+      MaxInstanceLifetime: Number
+      MaxSize: 3 # Required
+      MinSize: 1 # Required
+      Tags: 
+        Tags
+      TargetGroupARNs: 
+        - !GetAtt PrjTG.TargetGroupARN
+      VPCZoneIdentifier: 
+        VPCZoneIdentifier    
+
+  PrjALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Name: "String"
+      Scheme: "String"
+      SecurityGroups: 
+        - !GetAtt PrjALBSecGrp.GroupId
+      Subnets: !Ref MySubnets
+      Type: application    
+
+  PrjListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions: # Required
+        - TargetGroupArn: !Ref PrjTG
+          Type: forward
+      LoadBalancerArn: !Ref PrjALB # Required
+      Port: 80
+      Protocol: HTTP 
+
+  PrjDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: false
+      AvailabilityZone: "String"
+      DBInstanceClass: db.t2.micro
+      DBName: "String"
+      DBSecurityGroups: 
+        DBSecurityGroups
+      DeleteAutomatedBackups: false
+      DeletionProtection: false
+      EngineVersion: 8.0.28
+      MasterUserPassword: "String"
+      MasterUsername: admin
+      MaxAllocatedStorage: Number
+      MultiAZ: false
+      Port: 3306
+      PubliclyAccessible: true
+      VPCSecurityGroups: 
+        - !GetAtt PrjSecGrp.GroupId        
+
+  
+Outputs:
+  PrjURL:
+    Description: 
+    Value: 
