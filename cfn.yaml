@@ -68,7 +68,7 @@ Resources:
                   dnf install python3 -y 
                   pip3 install Flask
                   pip3 install Flask_MySql
-                  echo "${myRDSDatabase.Endpoint.Address}" >> dbserver.endpoint
+                  echo "${MyDBURI}" >> dbserver.endpoint
                   # https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/phonebook-app.py
                   # Add github Toekn
                   TOKEN = "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"
