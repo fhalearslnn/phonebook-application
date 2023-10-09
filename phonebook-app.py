@@ -2,6 +2,7 @@
 from flask import Flask, request, render_template
 from flaskext.mysql import MySQL
 
+
 # Create an object named app
 app = Flask(__name__)
 developer_name = "Hale"

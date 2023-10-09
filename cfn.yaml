@@ -23,7 +23,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTP and TCP # Required
-      GroupName: "String"
+      GroupName: enable http and tcp
       SecurityGroupIngress: 
         - IpProtocol: tcp
           FromPort: 22
@@ -41,7 +41,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enables HTTP connection # Required
-      GroupName: "String"
+      GroupName: Security Group for Your ALB
       SecurityGroupIngress: 
         - IpProtocol: tcp
           FromPort: 80
@@ -150,16 +150,14 @@ Resources:
       AutoMinorVersionUpgrade: false
       AvailabilityZone: "String"
       DBInstanceClass: db.t2.micro
+      DBInstanceIdentifier: phonebook_app_db1
       DBName: prj_phonebook
       DBSecurityGroups: 
-        DBSecurityGroups
-      DeleteAutomatedBackups: false
-      DeletionProtection: false
+        - !Ref 
+      Engine: MySQL  
       EngineVersion: 8.0.28
       MasterUserPassword: Phone_book_78
       MasterUsername: admin
-      MaxAllocatedStorage: Number
-      MultiAZ: false
       Port: 3306
       PubliclyAccessible: true
       VPCSecurityGroups: 
