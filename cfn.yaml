@@ -33,6 +33,7 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0      
+      VpcId: !Ref MyVPc      
 
 
 
@@ -53,29 +54,44 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: "String"
-        InstanceType: "String"
-        KeyName: "String"
+        ImageId: ami-067d1e60475437da2
+        InstanceType: t2.micro
+        KeyName: firstkey
         SecurityGroupIds:
-          -
-        TagSpecifications:
-          -
+          - !Ref PrjSecGrp
         UserData: 
           Fn::Base64:
              !Sub 
              - |
-             #!/bin/bash
-             dnf update -y 
-             dnf install python3 -y 
-             pip3 install Flask
-             pip3 install Flask_MySql
-             # Add github Toekn
-             # TOKEN = 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
-             # FOLDER = https://$TOKEN@github.com/fhalearslnn/
+               #!/bin/bash
+               dnf update -y 
+               dnf install python3 -y 
+               pip3 install Flask
+               pip3 install Flask_MySql
+               echo "${myRDSDatabase.Endpoint.Address}" >> dbserver.endpoint
+               # https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/phonebook-app.py
+               # Add github Toekn
+               TOKEN = "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"
+               FOLDER = https://$TOKEN@github.com/fhalearslnn/phonebook-application/main/
+               # FOLDER = https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/
+               curl -s --create-dirs -o "/home/ec2-user/templates/index.html" -L "$FOLDER"templates/index.html
+               curl -s --create-dirs -o "/home/ec2-user/templates/add-update.html" -L "$FOLDER"templates/add-update.html
+               curl -s --create-dirs -o "/home/ec2-user/templates/delete.html" -L "$FOLDER"templates/delete.html
+               curl -s --create-dirs -o "/home/ec2-user/phonebook-app.py" -L "$FOLDER"phonebook-app.py
+               python3 /home/ec2-user/phonebook-app.py
+             # wget https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/templates/add-update.html
+             # wget https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/templates/delete.html
+             # wget https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/templates/index.html
+             # echo "${myRDSDatabase.Endpoint.Address}" >> dbserver.endpoint
+             - MyDBURI: !GetAtt PrjDBInstance.Endpoint.Address
 
-      LaunchTemplateName: "String"
-      TagSpecifications: 
-        TagSpecifications
+
+      LaunchTemplateName: PrjLT
+      TagSpecifications:
+        - ResourceType: instance
+          Tags: 
+            - Key: Name
+              Value: !Sub Web Server of ${AWS::StackName} Stack
  
 
   PrjTG:
@@ -91,9 +107,8 @@ Resources:
   PrjASG:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AutoScalingGroupName: "String"
-      AvailabilityZones: 
-        AvailabilityZones
+      AutoScalingGroupName: PrjASG
+      AvailabilityZones: !GetAZs ""
       DesiredCapacity: 2
       HealthCheckGracePeriod: 300
       HealthCheckType: ELB
@@ -103,19 +118,15 @@ Resources:
       MaxInstanceLifetime: Number
       MaxSize: 3 # Required
       MinSize: 1 # Required
-      Tags: 
-        Tags
       TargetGroupARNs: 
         - !GetAtt PrjTG.TargetGroupARN
-      VPCZoneIdentifier: 
-        VPCZoneIdentifier    
+  
 
   PrjALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       IpAddressType: ipv4
-      Name: "String"
-      Scheme: "String"
+      Scheme: internet-facing
       SecurityGroups: 
         - !GetAtt PrjALBSecGrp.GroupId
       Subnets: !Ref MySubnets
@@ -145,7 +156,7 @@ Resources:
       DeleteAutomatedBackups: false
       DeletionProtection: false
       EngineVersion: 8.0.28
-      MasterUserPassword: "String"
+      MasterUserPassword: Phone_book_78
       MasterUsername: admin
       MaxAllocatedStorage: Number
       MultiAZ: false
@@ -158,4 +169,7 @@ Resources:
 Outputs:
   PrjURL:
     Description: 
-    Value: 
+    Value: !Join 
+      - ""
+      - - "http://"
+      - !GetAtt PrjALB.DNSName
