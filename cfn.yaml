@@ -71,7 +71,7 @@ Resources:
                   echo "${MyDBURI}" >> dbserver.endpoint
                   # https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/phonebook-app.py
                   # Add github Toekn
-                  TOKEN = "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"
+                  TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" # your token
                   FOLDER = https://$TOKEN@github.com/fhalearslnn/phonebook-application/main
                   # FOLDER = https://raw.githubusercontent.com/fhalearslnn/phonebook-application/main/
                   curl -s --create-dirs -o "/home/ec2-user/templates/index.html" -L "$FOLDER"/templates/index.html
